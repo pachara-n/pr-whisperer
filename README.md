@@ -1,98 +1,67 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# PR Whisperer 🤖
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+PR Whisperer is an AI-powered Pull Request Review Bot built with **NestJS**. It automatically analyzes GitHub Pull Requests for security vulnerabilities and performance bottlenecks using the **Groq API** (Llama 3.3 70B).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## ✨ Features
+- **Security Analysis**: Detects SQL Injections, Hardcoded Secrets, and Unsafe function calls (`eval`).
+- **Performance Audit**: Identifies O(n^2) loops, inefficient data filtering, and resource leaks.
+- **Idempotency**: Uses **Redis** to ensure each webhook event is processed exactly once.
+- **Size Aware**: Automatically skips PRs with large diffs to optimize costs and accuracy.
+- **Async Processing**: Responds to GitHub immediately while processing the AI review in the background.
 
-## Description
+## 🛠️ Tech Stack
+- **Framework**: [NestJS](https://nestjs.com/)
+- **AI Model**: [Groq Cloud](https://groq.com/) (Llama-3.3-70b-versatile)
+- **Database**: [Redis](https://redis.io/) (for caching delivery IDs)
+- **API Clients**: [Octokit](https://github.com/octokit/rest.js) (GitHub), [Groq SDK](https://github.com/groq/groq-typescript)
+- **Infrastructure**: Docker Compose (for local Redis)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ npm install
+## 📁 Project Structure
+```text
+src/
+├── ai/         # Integration with Groq AI SDK
+├── github/     # GitHub API (Diff fetching, Commenting)
+├── redis/      # Caching and Idempotency logic
+├── webhook/    # Webhook orchestration (Controller & Service)
+├── app.module.ts
+└── main.ts
 ```
 
-## Compile and run the project
+## 🚀 Getting Started
 
+### 1. Prerequisites
+- Docker & Docker Compose
+- Node.js (v18+)
+- [Ngrok](https://ngrok.com/) account (for local testing)
+
+### 2. Installation
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
+docker-compose up -d
 ```
 
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+### 3. Environment Setup
+Create a `.env` file based on `.env.example`:
+```env
+GITHUB_PAT=your_personal_access_token
+GITHUB_WEBHOOK_SECRET=your_secret
+GROQ_API_KEY=your_groq_api_key
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### 4. Running Locally
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Start the server
+npm run start:dev
+
+# Start the Ngrok tunnel
+npx ngrok http 3000
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 5. Webhook Configuration
+1. Go to your GitHub Repository -> Settings -> Webhooks.
+2. Set **Payload URL** to: `https://your-ngrok-url.ngrok-free.app/webhook/github`
+3. Set **Content type** to: `application/json`
+4. Select **Pull requests** event.
 
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## 📝 License
+MIT
