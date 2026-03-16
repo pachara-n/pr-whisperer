@@ -16,6 +16,8 @@ export class AiService {
   }
 
   async reviewCodeDiff(diff: string): Promise<string> {
+    this.logger.debug(`Analyzing diff:\n${diff}`);
+
     try {
       // We use a low temperature to ensure the AI provides consistent, 
       // objective technical feedback rather than creative suggestions.

@@ -42,13 +42,35 @@ export class GithubService {
     body: string,
   ): Promise<void> {
     try {
+      const modelName = this.configService.get<string>('GROQ_MODEL') || 'Unknown Model';
+
+      const formattedBody = `
+## 🤖 PR Whisperer Intelligence Review
+
+| Feature | Info |
+| :--- | :--- |
+| **Engine** | \`${modelName}\` |
+| **Focus** | Security & Performance |
+| **Status** | 🔍 Analysis Complete |
+
+---
+
+### 📝 Review Feedback
+
+${body}
+
+---
+> [!TIP]
+> This review was generated automatically. Please verify critical changes before merging.
+      `.trim();
+
       await this.octokit.rest.issues.createComment({
         owner,
         repo,
         issue_number: issueNumber,
-        body,
+        body: formattedBody,
       });
-      this.logger.log(`Successfully posted comment on PR #${issueNumber}`);
+      this.logger.log(`Successfully posted formatted comment on PR #${issueNumber}`);
     } catch (error) {
       this.logger.error(`Failed to post comment on PR #${issueNumber}`, error);
       throw error;
