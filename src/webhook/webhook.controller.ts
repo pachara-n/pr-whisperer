@@ -1,11 +1,13 @@
-import { Controller, Post, Body, Headers, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Headers, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { WebhookService } from './webhook.service';
+import { WebhookSignatureGuard } from '../common/guards/webhook-signature.guard';
 
 @Controller('webhook')
 export class WebhookController {
   constructor(private readonly webhookService: WebhookService) {}
 
   @Post('github')
+  @UseGuards(WebhookSignatureGuard)
   @HttpCode(HttpStatus.OK)
   async handleGithubWebhook(
     @Headers('x-github-delivery') deliveryId: string,
