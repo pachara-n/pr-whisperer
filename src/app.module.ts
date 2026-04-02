@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { RedisModule } from './redis/redis.module';
 import { GithubModule } from './github/github.module';
 import { AiModule } from './ai/ai.module';
 import { WebhookModule } from './webhook/webhook.module';
+import { Throttle, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 
 @Module({
   imports: [
@@ -14,6 +16,22 @@ import { WebhookModule } from './webhook/webhook.module';
     GithubModule,
     AiModule,
     WebhookModule,
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        throttlers: [
+          {
+            ttl: 60000,
+            limit: 5,
+          },
+        ],
+        storage: new ThrottlerStorageRedisService({
+          host: config.get('REDIS_HOST'),
+          port: config.get('REDIS_PORT'),
+        }),
+      }),
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
