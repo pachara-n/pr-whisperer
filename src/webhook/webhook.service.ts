@@ -66,7 +66,11 @@ export class WebhookService {
         formattedReview,
       );
     } catch (error) {
-      this.logger.error(`Error processing PR #${pullNumber}`, error);
+      this.logger.error({
+        message: `Failed to process PR #${pullNumber}`,
+        repository: `${owner}/${repo}`,
+        error: error.message,
+      });
     }
   }
 }

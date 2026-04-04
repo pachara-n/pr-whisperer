@@ -12,14 +12,18 @@ export class AiService {
     this.groq = new Groq({
       apiKey: this.configService.get<string>('GROQ_API_KEY'),
     });
-    this.model = this.configService.get<string>('GROQ_MODEL') || 'llama-3.3-70b-versatile';
+    this.model =
+      this.configService.get<string>('GROQ_MODEL') || 'llama-3.3-70b-versatile';
   }
 
   async reviewCodeDiff(diff: string): Promise<string> {
-    this.logger.debug(`Analyzing diff:\n${diff}`);
+    // this.logger.debug(`Analyzing diff:\n${diff}`);
+    if (!diff || diff.trim().length === 0) {
+      return 'No code change detected in this PR';
+    }
 
     try {
-      // We use a low temperature to ensure the AI provides consistent, 
+      // We use a low temperature to ensure the AI provides consistent,
       // objective technical feedback rather than creative suggestions.
       const response = await this.groq.chat.completions.create({
         messages: [
@@ -40,8 +44,16 @@ Return the result in clear markdown format. If no security or performance issues
         temperature: 0.1,
       });
 
-      return response.choices[0]?.message?.content || 'No critical issues found.';
+      return (
+        response.choices[0]?.message?.content || 'No critical issues found.'
+      );
     } catch (error) {
+      const status = error.status;
+      if (status === 429) {
+        return 'AI Rate Limit reached.';
+      } else if (status >= 500) {
+        return 'Groq AI is currently server issue.';
+      }
       this.logger.error('Failed to communicate with Groq API', error);
       throw error;
     }
