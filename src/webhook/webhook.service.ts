@@ -57,7 +57,7 @@ export class WebhookService {
 
       const review = await this.aiService.reviewCodeDiff(diff);
       
-      const formattedReview = `### AI Code Review (Security & Performance)\n\n${review}`;
+      const formattedReview = `### AI Code Review (Security & Performance)\n\n${review}\n\n---\n*Reviewed by **PR Whisperer 🤖***`;
 
       await this.githubService.createReviewComment(
         owner,
